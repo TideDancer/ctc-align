@@ -1,4 +1,4 @@
-export EPOCH=1
+export EPOCH=20
 export BATCH_SIZE=4
 export BATCH_ACC=8
 export LR=1e-4
