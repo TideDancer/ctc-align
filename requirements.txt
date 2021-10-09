@@ -1,0 +1,10 @@
+torch
+transformers
+datasets
+numpy==1.20
+librosa
+jiwer
+lang_trans
+wandb
+glog
+fastdtw

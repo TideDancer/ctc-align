@@ -137,7 +137,7 @@ def dist_regular(pred_ids, val_dataset, dist_func, return_all=False): # center o
         if return_all:
             return_tuple.append((dist, corr, t, bias))
     if return_all:
-        return total_dist/total_t, total_corr/total_t, total_bias/total_t return_tuple
+        return total_dist/total_t, total_corr/total_t, total_bias/total_t, return_tuple
     else:
         return total_dist/total_t, total_corr/total_t, total_bias/total_t
 

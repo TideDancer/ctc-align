@@ -277,21 +277,24 @@ def main():
 
             if data_args.vocab == 'regular':
                 boundary_list = []
-                dist, acc = util.dist_regular(pred_ids, val_dataset, dist_func)
+                dist, acc, bias = util.dist_regular(pred_ids, val_dataset, dist_func)
             elif data_args.vocab == 'splitter' or data_args.vocab == 's-boundary' or data_args.vocab == 't-boundary':
                 if data_args.vocab == 'splitter':
                     boundary_list = ['_']
                 else:
                     boundary_list = list(filter(lambda e: '_' in e, list(processor.tokenizer.get_vocab().keys())))
-                dist, acc = util.dist_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=True)
+                dist, acc, bias = util.dist_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=True)
             
-            eval(dtw_type+'_dist, '+dtw_type+'_acc = dist, acc')
+            if dtw_type == 'l2':
+                l2_dist, l2_acc, l2_bias = dist, acc, bias
+            if dtw_type == 'l1':
+                l1_dist, l1_acc, l1_bias = dist, acc, bias
 
         pred_str = processor.batch_decode(pred_ids, spaces_between_special_tokens=True) # spaces_between_special_tokens=True to use ' ' to join list of tokens
         label_str = processor.batch_decode(pred.label_ids, group_tokens=False, spaces_between_special_tokens=True) 
         pred_str, label_str = util.clean_str(pred_str, boundary_list), util.clean_str(label_str, boundary_list)
         wer = wer_metric.compute(predictions=pred_str, references=label_str)
-        return {"wer":wer, "mse":l2_dist, "l2_acc":l2_acc, "mae": l1_dist, "l1_acc": l1_acc}
+        return {"wer":wer, "mse":l2_dist, "l2_acc":l2_acc, "l2_bias":l2_bias, "mae": l1_dist, "l1_acc": l1_acc, "l1_bias":l1_bias}
 
     if model_args.freeze_feature_extractor:
         model.freeze_feature_extractor()

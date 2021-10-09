@@ -1,4 +1,4 @@
-export EPOCH=20
+export EPOCH=1
 export BATCH_SIZE=4
 export BATCH_ACC=8
 export LR=1e-4
@@ -6,9 +6,9 @@ export LR=1e-4
 export CTC_TYPE=$1 # standard, no-skip
 export PRIOR_TYPE=$2 # no, entropy, uniform, posterior
 export VOCAB_TYPE=$3 # regular, splitter, s-boundary, t-boundary 
-export DTW_TYPE=$4 # l2, l1
 
-python run_pr.py \
+# CUDA_VISIBLE_DEVICES=0 python run_pr.py \
+srun -p TitanXx8 -n 1 --gres=gpu:1 --cpus-per-task 20 python run_pr.py \
 --output_dir ./output/test \
 --overwrite_output_dir \
 --ctc_type $CTC_TYPE \
@@ -21,7 +21,7 @@ python run_pr.py \
 --evaluation_strategy="steps" \
 --warmup_ratio 0.1 \
 --save_steps="500" \
---eval_steps="500" \
+--eval_steps="5" \
 --do_train \
 --do_eval \
 --logging_steps="100" \
@@ -36,5 +36,6 @@ python run_pr.py \
 --preprocessing_num_workers=20 \
 --freeze_feature_extractor \
 --verbose_logging \
---group_by_length &
+--debug_mode \
+--group_by_length
 
