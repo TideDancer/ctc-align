@@ -110,7 +110,7 @@ def calc_cost(delim, gt, dist_func, frame_length=0.02):
 
 
 # obtain boundary for regular vocab
-def mse_regular(pred_ids, val_dataset, dist_func, return_all=False): # center of blank
+def dist_regular(pred_ids, val_dataset, dist_func, return_all=False): # center of blank
     total_dist, total_corr, total_t, total_bias, return_tuple = 0, 0, 0, 0, []
     for i in range(len(pred_ids)):
         ids = pred_ids[i]
@@ -142,7 +142,7 @@ def mse_regular(pred_ids, val_dataset, dist_func, return_all=False): # center of
         return total_dist/total_t, total_corr/total_t, total_bias/total_t
 
 
-def mse_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=False, return_all=False): # use phone_end boundary token
+def dist_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=False, return_all=False): # use phone_end boundary token
     total_dist, total_corr, total_t, total_bias, return_tuple = 0, 0, 0, 0, []
     b_list = processor.tokenizer.convert_tokens_to_ids(boundary_list)
     b_list = dict(zip(b_list, [1]*len(b_list)))

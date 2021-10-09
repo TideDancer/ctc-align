@@ -104,10 +104,8 @@ class DataTrainingArguments:
         metadata={"help": "The number of processes to use for the preprocessing."},
     )
     vocab: Optional[str] = field(default="regular", metadata={"help": "regular, splitter, s-boundary, t-boundary"})
-    dtw_type: Optional[str] = field(default=None, metadata={"help": "l2, l1"})
     debug_mode: Optional[bool] = field(default=False)
     eval_train: Optional[bool] = field(default=False)
-
 
 @dataclass
 class Orthography:
@@ -182,7 +180,6 @@ class Orthography:
                 # word_delimiter_token=self.word_delimiter_token,
             )
         return Wav2Vec2Processor(feature_extractor, tokenizer)
-
 
 def main():
     parser = HfArgumentParser((ModelArguments, DataTrainingArguments, TrainingArguments))
@@ -272,28 +269,29 @@ def main():
         pred_ids = np.argmax(pred_logits, axis=-1)
         pred.label_ids[pred.label_ids == -100] = processor.tokenizer.pad_token_id
 
-        if data_args.dtw_type == 'l2':
-            dist_func = lambda x,y: (x-y)**2 # squared distance
-        if data_args.dtw_type == 'l1':
-            dist_func = lambda x,y: abs(x-y) # absolute distance
+        for dtw_type in ['l2', 'l1']:
+            if dtw_type == 'l2':
+                dist_func = lambda x,y: (x-y)**2 # squared distance
+            if dtw_type == 'l1':
+                dist_func = lambda x,y: abs(x-y) # absolute distance
 
-        if data_args.vocab == 'regular':
-            boundary_list = []
-            dist, acc = util.mse_regular(pred_ids, val_dataset, dist_func)
-        elif data_args.vocab == 'splitter' or data_args.vocab == 's-boundary' or data_args.vocab == 't-boundary':
-            if data_args.vocab == 'splitter':
-                boundary_list = ['_']
-            else:
-                boundary_list = list(filter(lambda e: '_' in e, list(processor.tokenizer.get_vocab().keys())))
-            dist, acc = util.mse_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=True)
-        else:
-            dist = None
+            if data_args.vocab == 'regular':
+                boundary_list = []
+                dist, acc = util.dist_regular(pred_ids, val_dataset, dist_func)
+            elif data_args.vocab == 'splitter' or data_args.vocab == 's-boundary' or data_args.vocab == 't-boundary':
+                if data_args.vocab == 'splitter':
+                    boundary_list = ['_']
+                else:
+                    boundary_list = list(filter(lambda e: '_' in e, list(processor.tokenizer.get_vocab().keys())))
+                dist, acc = util.dist_boundary(pred_ids, val_dataset, processor, boundary_list, dist_func, mid_boundary=True)
+            
+            eval(dtw_type+'_dist, '+dtw_type+'_acc = dist, acc')
 
         pred_str = processor.batch_decode(pred_ids, spaces_between_special_tokens=True) # spaces_between_special_tokens=True to use ' ' to join list of tokens
         label_str = processor.batch_decode(pred.label_ids, group_tokens=False, spaces_between_special_tokens=True) 
         pred_str, label_str = util.clean_str(pred_str, boundary_list), util.clean_str(label_str, boundary_list)
         wer = wer_metric.compute(predictions=pred_str, references=label_str)
-        return {"wer":wer, "mse":dist, "acc":acc}
+        return {"wer":wer, "mse":l2_dist, "l2_acc":l2_acc, "mae": l1_dist, "l1_acc": l1_acc}
 
     if model_args.freeze_feature_extractor:
         model.freeze_feature_extractor()

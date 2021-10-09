@@ -14,7 +14,6 @@ python run_pr.py \
 --ctc_type $CTC_TYPE \
 --prior_type $PRIOR_TYPE \
 --vocab $VOCAB_TYPE \
---dtw_type $DTW_TYPE \
 --num_train_epochs $EPOCH \
 --per_device_train_batch_size $BATCH_SIZE \
 --per_device_eval_batch_size 1 \
